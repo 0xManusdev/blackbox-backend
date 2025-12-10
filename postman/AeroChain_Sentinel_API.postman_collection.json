@@ -1,0 +1,511 @@
+{
+	"info": {
+		"_postman_id": "aerochain-sentinel-api-collection",
+		"name": "AeroChain Sentinel API",
+		"description": "Collection complète pour tester l'API AeroChain Sentinel - Signalement anonyme d'incidents aéroportuaires avec IA & Blockchain",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "{{baseUrl}}"
+		}
+	],
+	"item": [
+		{
+			"name": "🏠 Root",
+			"item": [
+				{
+					"name": "Get API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": ["{{baseUrl}}"],
+							"path": [""]
+						},
+						"description": "Récupère les informations de base de l'API et la liste des endpoints disponibles."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "❤️ Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "health"]
+						},
+						"description": "Vérifie que l'API est opérationnelle et retourne le statut du service."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📝 Reports",
+			"item": [
+				{
+					"name": "Submit Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response",
+									"const response = pm.response.json();",
+									"",
+									"// Tests",
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response contains report data', function () {",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('category');",
+									"    pm.expect(response.data).to.have.property('severity');",
+									"    pm.expect(response.data).to.have.property('anonymizedContent');",
+									"    pm.expect(response.data).to.have.property('blockchain');",
+									"});",
+									"",
+									"pm.test('Blockchain data is present', function () {",
+									"    pm.expect(response.data.blockchain).to.have.property('txHash');",
+									"    pm.expect(response.data.blockchain).to.have.property('contentHash');",
+									"    pm.expect(response.data.blockchain).to.have.property('blockNumber');",
+									"});",
+									"",
+									"// Save report ID for other requests",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set('lastReportId', response.data.id);",
+									"    console.log('Saved report ID:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"J'ai observé Jean Dupuis (badge #12345) de la compagnie Air France laisser une porte de sécurité ouverte près du terminal 3. Cela s'est produit à 14h30 le 10 décembre. Son superviseur Marc Martin était absent.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports"]
+						},
+						"description": "Soumet un nouveau signalement d'incident.\n\n**Processus:**\n1. 🤖 Analyse IA avec Gemini (anonymisation + catégorisation)\n2. ⛓️ Horodatage sur blockchain Ethereum Sepolia\n3. 💾 Sauvegarde en base de données PostgreSQL"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Report - Security Incident",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set('lastReportId', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Une personne non identifiée a été vue dans la zone de fret sans badge visible. Elle portait un uniforme similaire à celui des agents de piste. L'incident s'est produit près du hangar B à 22h15.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports"]
+						},
+						"description": "Exemple de signalement d'un comportement suspect."
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Report - Technical Issue",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set('lastReportId', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Le scanner de bagages n°3 du terminal 2 présente des dysfonctionnements récurrents. Le technicien Pierre Durand a signalé le problème mais aucune action n'a été prise depuis 3 jours.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports"]
+						},
+						"description": "Exemple de signalement d'un incident technique."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Reports",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has count and data array', function () {",
+									"    pm.expect(response).to.have.property('count');",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first report ID if available",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('lastReportId', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports"]
+						},
+						"description": "Récupère la liste de tous les signalements enregistrés (ordonnés par date décroissante)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Report by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response contains full report data', function () {",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('category');",
+									"    pm.expect(response.data).to.have.property('severity');",
+									"    pm.expect(response.data).to.have.property('analysis');",
+									"    pm.expect(response.data).to.have.property('anonymizedContent');",
+									"    pm.expect(response.data).to.have.property('blockchain');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/{{lastReportId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "{{lastReportId}}"]
+						},
+						"description": "Récupère les détails complets d'un signalement spécifique par son ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Report by ID (Manual)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "1"]
+						},
+						"description": "Récupère le rapport avec ID = 1. Modifiez l'ID manuellement si nécessaire."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "✅ Verification",
+			"item": [
+				{
+					"name": "Verify Report Integrity",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response contains verification data', function () {",
+									"    pm.expect(response.data).to.have.property('reportId');",
+									"    pm.expect(response.data).to.have.property('integrityValid');",
+									"    pm.expect(response.data).to.have.property('storedHash');",
+									"    pm.expect(response.data).to.have.property('calculatedHash');",
+									"});",
+									"",
+									"pm.test('Integrity is valid', function () {",
+									"    pm.expect(response.data.integrityValid).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/{{lastReportId}}/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "{{lastReportId}}", "verify"]
+						},
+						"description": "Vérifie l'intégrité d'un signalement en comparant le hash stocké avec le hash recalculé du contenu."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Report Integrity (Manual)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/1/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "1", "verify"]
+						},
+						"description": "Vérifie l'intégrité du rapport avec ID = 1. Modifiez l'ID manuellement si nécessaire."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "❌ Error Cases",
+			"item": [
+				{
+					"name": "Submit Empty Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response has error message', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.false;",
+									"    pm.expect(response.error).to.include('required');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports"]
+						},
+						"description": "Teste la validation - soumet un rapport avec un contenu vide."
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Report Without Content",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports"]
+						},
+						"description": "Teste la validation - soumet un rapport sans champ content."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Non-Existent Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Response indicates not found', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/99999",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "99999"]
+						},
+						"description": "Teste la gestion d'erreur - demande un rapport qui n'existe pas."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Report with Invalid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/invalid",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "invalid"]
+						},
+						"description": "Teste la validation - demande un rapport avec un ID non numérique."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

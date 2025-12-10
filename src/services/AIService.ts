@@ -10,7 +10,7 @@ export interface AIAnalysisResult {
 }
 
 const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
 export async function analyzeAndAnonymize(content: string): Promise<AIAnalysisResult> {
     if (!config.geminiApiKey) {

@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Report {
+    id                Int      @id @default(autoincrement())
+    originalContent   String   @map("original_content")
+    anonymizedContent String   @map("anonymized_content")
+    category          String   @db.VarChar(100)
+    severity          String   @db.VarChar(50)
+    aiAnalysis        String   @map("ai_analysis")
+    contentHash       String   @map("content_hash") @db.VarChar(66)
+    blockchainTxHash  String   @map("blockchain_tx_hash") @db.VarChar(66)
+    createdAt         DateTime @default(now()) @map("created_at")
+
+    @@map("reports")
+}

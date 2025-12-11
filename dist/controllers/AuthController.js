@@ -1,0 +1,157 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.register = register;
+exports.login = login;
+exports.logout = logout;
+exports.getCurrentAdmin = getCurrentAdmin;
+exports.getAuditLogsController = getAuditLogsController;
+const AuthService_1 = require("../services/AuthService");
+const AuditService_1 = require("../services/AuditService");
+async function register(req, res) {
+    try {
+        const { firstName, lastName, email, password, position } = req.body;
+        if (!firstName || !lastName || !email || !password || !position) {
+            res.status(400).json({
+                success: false,
+                error: 'Validation error',
+                message: 'Tous les champs sont requis',
+            });
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            res.status(400).json({
+                success: false,
+                error: 'Validation error',
+                message: 'Email invalide',
+            });
+            return;
+        }
+        if (password.length < 8) {
+            res.status(400).json({
+                success: false,
+                error: 'Validation error',
+                message: 'Le mot de passe doit contenir au moins 8 caractères',
+            });
+            return;
+        }
+        const admin = await (0, AuthService_1.createAdmin)({
+            firstName,
+            lastName,
+            email,
+            password,
+            position,
+        });
+        res.status(201).json({
+            success: true,
+            message: 'Administrateur créé avec succès',
+            data: admin,
+        });
+    }
+    catch (error) {
+        console.error('Admin registration error:', error);
+        res.status(400).json({
+            success: false,
+            error: 'Registration failed',
+            message: error instanceof Error ? error.message : 'Erreur lors de la création',
+        });
+    }
+}
+async function login(req, res) {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            res.status(400).json({
+                success: false,
+                error: 'Validation error',
+                message: 'Email et mot de passe requis',
+            });
+            return;
+        }
+        const { token, admin } = await (0, AuthService_1.loginAdmin)({ email, password });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        });
+        res.json({
+            success: true,
+            message: 'Connexion réussie',
+            data: {
+                admin,
+                token,
+            },
+        });
+    }
+    catch (error) {
+        console.error('Login error:', error);
+        res.status(401).json({
+            success: false,
+            error: 'Authentication failed',
+            message: error instanceof Error ? error.message : 'Erreur lors de la connexion',
+        });
+    }
+}
+async function logout(req, res) {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+    });
+    res.json({
+        success: true,
+        message: 'Déconnexion réussie',
+    });
+}
+async function getCurrentAdmin(req, res) {
+    try {
+        if (!req.admin) {
+            res.status(401).json({
+                success: false,
+                error: 'Non autorisé',
+                message: 'Administrateur non authentifié',
+            });
+            return;
+        }
+        const admin = await (0, AuthService_1.getAdminById)(req.admin.id);
+        res.json({
+            success: true,
+            data: admin,
+        });
+    }
+    catch (error) {
+        console.error('Get current admin error:', error);
+        res.status(404).json({
+            success: false,
+            error: 'Not found',
+            message: error instanceof Error ? error.message : 'Administrateur non trouvé',
+        });
+    }
+}
+async function getAuditLogsController(req, res) {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const perPage = parseInt(req.query.perPage) || 50;
+        const result = await (0, AuditService_1.getAuditLogs)(page, perPage);
+        res.json({
+            success: true,
+            data: result.logs,
+            pagination: {
+                page: result.page,
+                perPage: result.perPage,
+                total: result.total,
+                totalPages: result.totalPages,
+            },
+        });
+    }
+    catch (error) {
+        console.error('Get audit logs error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: 'Erreur lors de la récupération des logs',
+        });
+    }
+}
+//# sourceMappingURL=AuthController.js.map

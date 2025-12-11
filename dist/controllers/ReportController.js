@@ -1,6 +1,39 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyReport = exports.getReport = exports.getReports = exports.submitReport = void 0;
+exports.deleteReport = exports.resolveReport = exports.verifyReport = exports.getReport = exports.getReports = exports.submitReport = void 0;
 const ErrorHandler_1 = require("../utils/ErrorHandler");
 const AIService_1 = require("../services/AIService");
 const BlockchainService_1 = require("../services/BlockchainService");
@@ -184,6 +217,66 @@ exports.verifyReport = (0, ErrorHandler_1.asyncHandler)(async (req, res) => {
             calculatedHash: currentHash,
             blockchainTxHash: report.blockchain_tx_hash,
             explorerUrl: `https://sepolia.etherscan.io/tx/${report.blockchain_tx_hash}`,
+        },
+    });
+});
+// Admin: Mark report as resolved
+exports.resolveReport = (0, ErrorHandler_1.asyncHandler)(async (req, res) => {
+    const id = parseInt(req.params['id'] || '', 10);
+    if (isNaN(id)) {
+        throw new ErrorHandler_1.AppError('Invalid report ID', 400);
+    }
+    if (!req.admin) {
+        throw new ErrorHandler_1.AppError('Unauthorized', 401);
+    }
+    const report = await (0, DBService_1.getReportById)(id);
+    if (!report) {
+        throw new ErrorHandler_1.AppError('Report not found', 404);
+    }
+    const { prisma } = await Promise.resolve().then(() => __importStar(require('../services/DBService')));
+    const updatedReport = await prisma.report.update({
+        where: { id },
+        data: {
+            status: 'resolved',
+            resolvedBy: req.admin.id,
+            resolvedAt: new Date(),
+        },
+    });
+    res.json({
+        success: true,
+        message: 'Signalement marqué comme résolu',
+        data: {
+            id: updatedReport.id,
+            status: updatedReport.status,
+            resolvedBy: req.admin.id,
+            resolvedAt: updatedReport.resolvedAt,
+        },
+    });
+});
+// Admin: Delete report
+exports.deleteReport = (0, ErrorHandler_1.asyncHandler)(async (req, res) => {
+    const id = parseInt(req.params['id'] || '', 10);
+    if (isNaN(id)) {
+        throw new ErrorHandler_1.AppError('Invalid report ID', 400);
+    }
+    if (!req.admin) {
+        throw new ErrorHandler_1.AppError('Unauthorized', 401);
+    }
+    const report = await (0, DBService_1.getReportById)(id);
+    if (!report) {
+        throw new ErrorHandler_1.AppError('Report not found', 404);
+    }
+    const { prisma } = await Promise.resolve().then(() => __importStar(require('../services/DBService')));
+    await prisma.report.delete({
+        where: { id },
+    });
+    res.json({
+        success: true,
+        message: 'Signalement supprimé avec succès',
+        data: {
+            id,
+            deletedBy: req.admin.id,
+            deletedAt: new Date(),
         },
     });
 });

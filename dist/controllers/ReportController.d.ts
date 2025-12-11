@@ -3,3 +3,5 @@ export declare const submitReport: (req: Request, res: Response, next: import("e
 export declare const getReports: (req: Request, res: Response, next: import("express").NextFunction) => void;
 export declare const getReport: (req: Request, res: Response, next: import("express").NextFunction) => void;
 export declare const verifyReport: (req: Request, res: Response, next: import("express").NextFunction) => void;
+export declare const resolveReport: (req: Request, res: Response, next: import("express").NextFunction) => void;
+export declare const deleteReport: (req: Request, res: Response, next: import("express").NextFunction) => void;

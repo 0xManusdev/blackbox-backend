@@ -7,5 +7,7 @@ export declare const config: {
     supabaseUrl: string;
     supabaseServiceKey: string;
     supabaseBucket: string;
+    jwtSecret: string;
+    jwtExpiresIn: string;
 };
 export declare function validateConfig(): void;

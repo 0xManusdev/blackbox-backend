@@ -5,7 +5,18 @@ import {
     getReports,
     getReport,
     verifyReport,
+    resolveReport,
+    deleteReport,
 } from '../controllers/ReportController';
+import {
+    register,
+    login,
+    logout,
+    getCurrentAdmin,
+    getAuditLogsController,
+} from '../controllers/AuthController';
+import { authMiddleware } from '../middlewares/authMiddleware';
+import { auditMiddleware } from '../middlewares/auditMiddleware';
 import { Zone } from '../services/DBService';
 
 const router = Router();
@@ -42,7 +53,7 @@ router.get('/health', (_req: Request, res: Response) => {
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        service: 'AeroChain Sentinel API',
+        service: 'Blackbox Report API',
     });
 });
 
@@ -66,10 +77,25 @@ router.get('/zones', (_req: Request, res: Response) => {
     });
 });
 
-// Report endpoints
+// Authentication routes (public)
+router.post('/auth/register', register);
+router.post('/auth/login', login);
+router.post('/auth/logout', logout);
+
+// Protected authentication routes
+router.get('/auth/me', authMiddleware, getCurrentAdmin);
+
+// Public report endpoints
 router.post('/reports', upload.array('attachments', 3), submitReport);
-router.get('/reports', getReports);
 router.get('/reports/:id', getReport);
 router.get('/reports/:id/verify', verifyReport);
+
+// Protected admin endpoints (with audit logging)
+router.get('/reports', authMiddleware, auditMiddleware, getReports);
+router.put('/reports/:id/resolve', authMiddleware, auditMiddleware, resolveReport);
+router.delete('/reports/:id', authMiddleware, auditMiddleware, deleteReport);
+
+// Admin audit logs
+router.get('/admin/logs', authMiddleware, getAuditLogsController);
 
 export default router;

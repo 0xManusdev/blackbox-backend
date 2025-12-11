@@ -6,6 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
 const ReportController_1 = require("../controllers/ReportController");
+const AuthController_1 = require("../controllers/AuthController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const auditMiddleware_1 = require("../middlewares/auditMiddleware");
 const router = (0, express_1.Router)();
 // Configure multer for file uploads (memory storage for Supabase)
 const upload = (0, multer_1.default)({
@@ -38,7 +41,7 @@ router.get('/health', (_req, res) => {
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        service: 'AeroChain Sentinel API',
+        service: 'Blackbox Report API',
     });
 });
 // Get available zones
@@ -59,10 +62,21 @@ router.get('/zones', (_req, res) => {
         data: zones,
     });
 });
-// Report endpoints
+// Authentication routes (public)
+router.post('/auth/register', AuthController_1.register);
+router.post('/auth/login', AuthController_1.login);
+router.post('/auth/logout', AuthController_1.logout);
+// Protected authentication routes
+router.get('/auth/me', authMiddleware_1.authMiddleware, AuthController_1.getCurrentAdmin);
+// Public report endpoints
 router.post('/reports', upload.array('attachments', 3), ReportController_1.submitReport);
-router.get('/reports', ReportController_1.getReports);
 router.get('/reports/:id', ReportController_1.getReport);
 router.get('/reports/:id/verify', ReportController_1.verifyReport);
+// Protected admin endpoints (with audit logging)
+router.get('/reports', authMiddleware_1.authMiddleware, auditMiddleware_1.auditMiddleware, ReportController_1.getReports);
+router.put('/reports/:id/resolve', authMiddleware_1.authMiddleware, auditMiddleware_1.auditMiddleware, ReportController_1.resolveReport);
+router.delete('/reports/:id', authMiddleware_1.authMiddleware, auditMiddleware_1.auditMiddleware, ReportController_1.deleteReport);
+// Admin audit logs
+router.get('/admin/logs', authMiddleware_1.authMiddleware, AuthController_1.getAuditLogsController);
 exports.default = router;
 //# sourceMappingURL=index.js.map

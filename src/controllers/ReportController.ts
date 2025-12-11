@@ -223,3 +223,79 @@ export const verifyReport = asyncHandler(async (req: Request, res: Response): Pr
         },
     });
 });
+
+// Admin: Mark report as resolved
+export const resolveReport = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const id = parseInt(req.params['id'] || '', 10);
+
+    if (isNaN(id)) {
+        throw new AppError('Invalid report ID', 400);
+    }
+
+    if (!req.admin) {
+        throw new AppError('Unauthorized', 401);
+    }
+
+    const report = await getReportById(id);
+
+    if (!report) {
+        throw new AppError('Report not found', 404);
+    }
+
+    const { prisma } = await import('../services/DBService');
+    
+    const updatedReport = await prisma.report.update({
+        where: { id },
+        data: {
+            status: 'resolved',
+            resolvedBy: req.admin.id,
+            resolvedAt: new Date(),
+        },
+    });
+
+    res.json({
+        success: true,
+        message: 'Signalement marqué comme résolu',
+        data: {
+            id: updatedReport.id,
+            status: updatedReport.status,
+            resolvedBy: req.admin.id,
+            resolvedAt: updatedReport.resolvedAt,
+        },
+    });
+});
+
+// Admin: Delete report
+export const deleteReport = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const id = parseInt(req.params['id'] || '', 10);
+
+    if (isNaN(id)) {
+        throw new AppError('Invalid report ID', 400);
+    }
+
+    if (!req.admin) {
+        throw new AppError('Unauthorized', 401);
+    }
+
+    const report = await getReportById(id);
+
+    if (!report) {
+        throw new AppError('Report not found', 404);
+    }
+
+    const { prisma } = await import('../services/DBService');
+    
+    await prisma.report.delete({
+        where: { id },
+    });
+
+    res.json({
+        success: true,
+        message: 'Signalement supprimé avec succès',
+        data: {
+            id,
+            deletedBy: req.admin.id,
+            deletedAt: new Date(),
+        },
+    });
+});

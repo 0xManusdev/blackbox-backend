@@ -45,7 +45,46 @@ model Report {
     // Attachments (stored as Supabase URLs)
     attachments       String[] @default([])
     
+    // Admin management
+    status            String   @default("pending") @db.VarChar(50) // pending, resolved, closed
+    resolvedBy        Int?     @map("resolved_by")
+    resolvedAt        DateTime? @map("resolved_at")
+    
     createdAt         DateTime @default(now()) @map("created_at")
 
+    admin             Admin?   @relation(fields: [resolvedBy], references: [id])
+
     @@map("reports")
+}
+
+model Admin {
+    id        Int      @id @default(autoincrement())
+    firstName String   @map("first_name") @db.VarChar(100)
+    lastName  String   @map("last_name") @db.VarChar(100)
+    email     String   @unique @db.VarChar(255)
+    password  String   @db.VarChar(255) // Bcrypt hashed
+    position  String   @db.VarChar(100)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+    
+    reports   Report[]
+    auditLogs AuditLog[]
+
+    @@map("admins")
+}
+
+model AuditLog {
+    id          Int      @id @default(autoincrement())
+    adminId     Int      @map("admin_id")
+    action      String   @db.VarChar(255) // e.g., "DELETE /api/reports/123"
+    method      String   @db.VarChar(10)  // POST, PUT, DELETE
+    endpoint    String   @db.VarChar(500)
+    params      String?  @db.Text         // JSON string of request params/body
+    ipAddress   String   @map("ip_address") @db.VarChar(50)
+    userAgent   String   @map("user_agent") @db.Text
+    createdAt   DateTime @default(now()) @map("created_at")
+    
+    admin       Admin    @relation(fields: [adminId], references: [id])
+
+    @@map("audit_logs")
 }

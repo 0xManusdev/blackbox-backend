@@ -13,6 +13,10 @@ exports.config = {
     geminiApiKey: process.env['GEMINI_API_KEY'] || '',
     ethPrivateKey: process.env['ETH_PRIVATE_KEY'] || '',
     ethRpcUrl: process.env['ETH_RPC_URL'] || '',
+    // Supabase Storage
+    supabaseUrl: process.env['SUPABASE_URL'] || '',
+    supabaseServiceKey: process.env['SUPABASE_SERVICE_KEY'] || '',
+    supabaseBucket: process.env['SUPABASE_BUCKET'] || 'attachments',
 };
 // Validate required environment variables
 function validateConfig() {
@@ -20,6 +24,10 @@ function validateConfig() {
     const missing = required.filter((key) => !process.env[key]);
     if (missing.length > 0) {
         console.warn(`Warning: Missing environment variables: ${missing.join(', ')}`);
+    }
+    // Warn about optional Supabase config
+    if (!process.env['SUPABASE_URL'] || !process.env['SUPABASE_SERVICE_KEY']) {
+        console.warn('Warning: Supabase not configured - file uploads will be disabled');
     }
 }
 //# sourceMappingURL=index.js.map

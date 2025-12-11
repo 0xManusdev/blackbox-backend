@@ -5,7 +5,7 @@ const generative_ai_1 = require("@google/generative-ai");
 const config_1 = require("../config");
 const ErrorHandler_1 = require("../utils/ErrorHandler");
 const genAI = new generative_ai_1.GoogleGenerativeAI(config_1.config.geminiApiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 async function analyzeAndAnonymize(content) {
     if (!config_1.config.geminiApiKey) {
         throw new ErrorHandler_1.AppError('Gemini API key not configured', 500);
@@ -42,13 +42,11 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();
-        // Extract JSON from response (handle markdown code blocks)
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
             throw new ErrorHandler_1.AppError('Invalid AI response format', 500);
         }
         const parsed = JSON.parse(jsonMatch[0]);
-        // Validate response structure
         if (!parsed.anonymizedContent || !parsed.category || !parsed.severity || !parsed.analysis) {
             throw new ErrorHandler_1.AppError('Incomplete AI analysis', 500);
         }

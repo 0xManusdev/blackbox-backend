@@ -14,8 +14,8 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: '*',
-    credentials: false,
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://blackbox-backend-2z8a.onrender.com'],
+    credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

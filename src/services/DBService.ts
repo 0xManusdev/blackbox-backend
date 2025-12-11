@@ -1,8 +1,8 @@
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, Report as PrismaReport } from '../../generated/prisma/client';
+import { PrismaClient, Report as PrismaReport } from '@prisma/client';
 import { config } from '../config';
-import { Zone } from '../../generated/prisma/enums';
+import { Zone } from '@prisma/client';
 
 // Re-export Zone enum for use in other files
 export { Zone };

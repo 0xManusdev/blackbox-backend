@@ -1,32 +1,59 @@
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, Report as PrismaReport } from '@prisma/client';
+import { PrismaClient, Report as PrismaReport } from '../../generated/prisma/client';
 import { config } from '../config';
+import { Zone } from '../../generated/prisma/enums';
+
+// Re-export Zone enum for use in other files
+export { Zone };
 
 // Report interface (matches Prisma model but with snake_case for compatibility)
 export interface Report {
-    id?: number;    
-    original_content: string;
+    id?: number;
+    zone: Zone;
+    custom_zone?: string | null;
+    incident_time: string;
+    description: string;
     anonymized_content: string;
     category: string;
     severity: string;
     ai_analysis: string;
     content_hash: string;
     blockchain_tx_hash: string;
+    attachments: string[];
     created_at?: Date;
+}
+
+// Input type for creating a report
+export interface CreateReportInput {
+    zone: Zone;
+    customZone?: string;
+    incidentTime: string;
+    description: string;
+    anonymizedContent: string;
+    category: string;
+    severity: string;
+    aiAnalysis: string;
+    contentHash: string;
+    blockchainTxHash: string;
+    attachments: string[];
 }
 
 // Helper to map Prisma model to legacy interface
 function mapToLegacy(r: PrismaReport): Report {
     return {
         id: r.id,
-        original_content: r.originalContent,
+        zone: r.zone,
+        custom_zone: r.customZone,
+        incident_time: r.incidentTime,
+        description: r.description,
         anonymized_content: r.anonymizedContent,
         category: r.category,
         severity: r.severity,
         ai_analysis: r.aiAnalysis,
         content_hash: r.contentHash,
         blockchain_tx_hash: r.blockchainTxHash,
+        attachments: r.attachments,
         created_at: r.createdAt,
     };
 }
@@ -50,16 +77,20 @@ export async function initDatabase(): Promise<void> {
 }
 
 // Save a new report to database
-export async function saveReport(report: Omit<Report, 'id' | 'created_at'>): Promise<Report> {
+export async function saveReport(input: CreateReportInput): Promise<Report> {
     const created = await prisma.report.create({
         data: {
-            originalContent: report.original_content,
-            anonymizedContent: report.anonymized_content,
-            category: report.category,
-            severity: report.severity,
-            aiAnalysis: report.ai_analysis,
-            contentHash: report.content_hash,
-            blockchainTxHash: report.blockchain_tx_hash,
+            zone: input.zone,
+            customZone: input.customZone || null,
+            incidentTime: input.incidentTime,
+            description: input.description,
+            anonymizedContent: input.anonymizedContent,
+            category: input.category,
+            severity: input.severity,
+            aiAnalysis: input.aiAnalysis,
+            contentHash: input.contentHash,
+            blockchainTxHash: input.blockchainTxHash,
+            attachments: input.attachments,
         },
     });
 

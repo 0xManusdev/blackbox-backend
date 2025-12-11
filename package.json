@@ -24,6 +24,7 @@
     "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
+    "@supabase/supabase-js": "^2.87.1",
     "cors": "^2.8.5",
     "ethers": "^6.16.0",
     "express": "^5.2.1",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.10.2",
     "@types/pg": "^8.15.6",
     "dotenv": "^17.2.3",

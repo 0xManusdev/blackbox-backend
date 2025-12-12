@@ -6,25 +6,20 @@ import { errorHandler } from './utils/ErrorHandler';
 import { initDatabase } from './services/DBService';
 import routes from './routes';
 
-// Validate environment configuration
 validateConfig();
 
-// Create Express app
 const app = express();
 
-// Middleware
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://blackbox-backend-2z8a.onrender.com'],
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// API Routes
 app.use('/api', routes);
 
-// Root endpoint
 app.get('/', (_req, res) => {
     res.json({
         name: 'Blackbox Report API',
@@ -52,10 +47,8 @@ app.get('/', (_req, res) => {
     });
 });
 
-// Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Start server
 async function startServer(): Promise<void> {
     try {
         await initDatabase();
